@@ -1,12 +1,47 @@
 "use client";
 
+import { useRef, useEffect, useState } from "react";
 import { motion, Variants } from "framer-motion";
 import { portfolioData } from "@/data/portfolio";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import Link from "next/link";
 
+export let heroNameData: { rect: DOMRect; absoluteTop: number; fontSize: number } | null = null;
+
 export function Hero() {
   const prefersReducedMotion = useReducedMotion();
+  const nameRef = useRef<HTMLHeadingElement>(null);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const updateRect = () => {
+      if (nameRef.current) {
+        const rect = nameRef.current.getBoundingClientRect();
+        const fontSize = parseFloat(window.getComputedStyle(nameRef.current).fontSize) || 120;
+        const absoluteTop = rect.top + window.scrollY;
+        heroNameData = { rect, absoluteTop, fontSize };
+      }
+    };
+    
+    updateRect();
+    const t = setTimeout(updateRect, 300); // give layout a moment to settle
+    window.addEventListener("resize", updateRect);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", updateRect);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!heroNameData || heroNameData.absoluteTop <= 0) return;
+      const p = Math.max(0, Math.min(1, window.scrollY / heroNameData.absoluteTop));
+      setProgress(p);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const containerVariants: Variants = {
     hidden: {},
@@ -38,10 +73,12 @@ export function Hero() {
         </motion.div>
 
         <motion.h1
-          className="font-heading font-black uppercase tracking-tight text-[var(--text)] leading-[0.85] w-full flex flex-col"
+          ref={nameRef}
+          className="font-heading font-black uppercase tracking-tight text-[var(--text)] leading-[0.85] w-full flex flex-col transition-opacity duration-150"
           variants={prefersReducedMotion ? {} : containerVariants}
           initial="hidden"
           animate="visible"
+          style={{ opacity: progress > 0.95 ? 0 : 1 }}
         >
           {/* Line 1 - Flush Left */}
           <div className="flex justify-start">

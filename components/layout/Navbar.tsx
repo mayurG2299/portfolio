@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { motion, AnimatePresence } from "framer-motion";
+import { portfolioData } from "@/data/portfolio";
+import { heroNameData } from "@/components/sections/Hero";
 
 const NAV_ITEMS = [
   { name: "About", href: "#about" },
@@ -16,6 +19,8 @@ export function Navbar() {
   const [isDark, setIsDark] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [cloneStyle, setCloneStyle] = useState<React.CSSProperties | undefined>(undefined);
   const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
@@ -23,11 +28,44 @@ export function Navbar() {
     const theme = document.documentElement.getAttribute("data-theme") || "dark";
     setIsDark(theme === "dark");
 
-    // Scroll listener for backdrop logic
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
+
+      // Handle floating clone interpolation
+      if (heroNameData && heroNameData.absoluteTop > 0) {
+        const p = Math.max(0, Math.min(1, window.scrollY / heroNameData.absoluteTop));
+        setProgress(p);
+
+        if (p > 0 && p < 1) {
+          const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+          const fromSize = heroNameData.fontSize;
+          const toSize = 15;
+          const fromTop = heroNameData.absoluteTop;
+          const toTop = 27; // Center slightly within 80px navbar height
+          const fromLeft = heroNameData.rect.left;
+          const toLeft = 24; // px-6 is 24px
+
+          setCloneStyle({
+            position: 'fixed',
+            top: lerp(fromTop - window.scrollY, toTop, p), 
+            left: lerp(fromLeft, toLeft, p),
+            fontSize: lerp(fromSize * 0.8, toSize, p),
+            opacity: p > 0.1 ? 1 : 0,
+            fontFamily: 'var(--font-heading)',
+            fontWeight: 800,
+            color: 'var(--text)',
+            pointerEvents: 'none',
+            zIndex: 60,
+            whiteSpace: 'nowrap',
+            transition: 'none',
+          });
+        }
+      } else {
+        setProgress(0);
+      }
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -68,9 +106,26 @@ export function Navbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        <Link href="/" className="text-2xl font-heading font-bold text-[var(--accent)] tracking-tight">
-          MG
-        </Link>
+        <div className="min-w-[200px] flex items-center">
+          <AnimatePresence>
+            {isScrolled && progress === 1 && (
+              <motion.div
+                initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -8 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="flex flex-col"
+              >
+                <span className="font-heading font-bold text-[15px] text-[var(--text)]">
+                  {portfolioData.name}
+                </span>
+                <span className="font-mono text-[11px] text-[var(--text-muted)] mt-[2px]">
+                  {portfolioData.title} &middot; 6+ yrs
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
         
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
@@ -142,6 +197,13 @@ export function Navbar() {
               {item.name}
             </Link>
           ))}
+        </div>
+      )}
+
+      {/* Floating identity clone */}
+      {progress > 0 && progress < 1 && cloneStyle && (
+        <div style={cloneStyle} className="leading-none uppercase tracking-tight">
+          {portfolioData.name}
         </div>
       )}
     </nav>
