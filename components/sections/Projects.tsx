@@ -1,7 +1,8 @@
+"use client";
+
 import { portfolioData } from "@/data/portfolio";
-import { SectionHeading } from "@/components/ui/SectionHeading";
-import { TechBadge } from "@/components/ui/TechBadge";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Github, ExternalLink, Box } from "lucide-react";
 import Link from "next/link";
 
@@ -21,70 +22,64 @@ type Project = {
 function ProjectCard({ project }: { project: Project }) {
   return (
     <div
-      className={`flex flex-col gap-8 p-8 rounded-xl bg-[var(--bg)] border border-[var(--border)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-[var(--accent)] ${
-        project.featured ? "lg:flex-row" : "h-full"
-      }`}
+      className="flex flex-col h-full gap-6 p-8 rounded-xl bg-[var(--bg)] border border-[var(--border)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl relative overflow-hidden group"
     >
-      <div className={`flex flex-col justify-between ${project.featured ? "lg:w-2/3" : "w-full h-full"}`}>
-        <div>
-          <div className="flex items-center gap-3 mb-4">
-            <h3 className="text-2xl font-heading font-bold text-[var(--text)]">{project.name}</h3>
-            {project.featured && (
-              <span className="px-3 py-1 bg-[var(--accent)]/10 text-[var(--accent)] text-xs font-bold uppercase tracking-wider rounded-full border border-[var(--accent)]/20">
-                Featured
-              </span>
-            )}
-          </div>
-          <p className="text-lg text-[var(--text)] font-medium mb-2">{project.highlight}</p>
-          <p className="text-[var(--text-muted)] leading-relaxed mb-6">{project.bullets.filter(b => b.print).map(b => b.text).join(" ")}</p>
-          
-          <ul className="space-y-2 mb-8">
-            {project.bullets.filter(b => b.print).map((bullet, i: number) => (
-              <li key={i} className="flex gap-2 text-[var(--text-muted)] text-sm">
-                <span className="text-[var(--accent)]">▹</span>
-                {bullet.text}
-              </li>
-            ))}
-          </ul>
+      <div className="flex flex-col h-full z-10">
+        <div className="flex items-center gap-3 mb-4">
+          <h3 className={`font-heading font-black text-[var(--text)] tracking-tight ${project.featured ? "text-3xl md:text-5xl" : "text-2xl"}`}>
+            {project.name}
+          </h3>
+          {project.featured && (
+            <span className="px-3 py-1 bg-[var(--bg-card)] text-[var(--text-muted)] font-mono text-[10px] uppercase tracking-widest rounded-sm mt-1 md:mt-2">
+              Featured
+            </span>
+          )}
         </div>
+        
+        <p className={`text-[var(--text-muted)] font-body font-medium mb-6 ${project.featured ? "text-lg md:text-xl" : "text-[15px]"}`}>
+          {project.highlight}
+        </p>
+        
+        <ul className="space-y-3 mb-8">
+          {project.bullets.filter(b => b.print).map((bullet, i: number) => (
+            <li key={i} className="flex gap-3 text-[var(--text-muted)] font-body text-[14px] leading-relaxed">
+              <span className="text-[var(--accent)] mt-[2px] shrink-0">▹</span>
+              <span>{bullet.text}</span>
+            </li>
+          ))}
+        </ul>
 
-        <div className="flex flex-col gap-6 mt-auto">
+        <div className="mt-auto flex flex-col gap-6">
           <div className="flex flex-wrap gap-2">
             {project.tags && project.tags.split(' · ').map((tech: string) => (
-              <TechBadge key={tech}>{tech.trim()}</TechBadge>
+              <span key={tech} className="font-mono text-[11px] text-[var(--text-muted)] bg-[var(--bg-card)] px-2 py-1 rounded-sm">
+                {tech.trim()}
+              </span>
             ))}
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6 pt-6 border-t border-[var(--border)]">
             {project.github && (
-              <Link href={project.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-medium text-[var(--text)] hover:text-[var(--accent)] transition-colors">
-                <Github className="w-5 h-5" />
-                Code
+              <Link href={project.github} target="_blank" rel="noopener noreferrer" className="group/link flex items-center gap-2 text-[13px] font-mono text-[var(--text)] hover:text-[var(--accent)] transition-colors">
+                <Github className="w-4 h-4" />
+                <span>GitHub ↗</span>
               </Link>
             )}
             {project.dockerHub && (
-              <Link href={project.dockerHub} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-medium text-[var(--text)] hover:text-[var(--accent)] transition-colors">
-                <Box className="w-5 h-5" />
-                Hub
+              <Link href={project.dockerHub} target="_blank" rel="noopener noreferrer" className="group/link flex items-center gap-2 text-[13px] font-mono text-[var(--text)] hover:text-[var(--accent)] transition-colors">
+                <Box className="w-4 h-4" />
+                <span>Docker ↗</span>
               </Link>
             )}
             {project.live && (
-              <Link href={project.live} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-medium text-[var(--text)] hover:text-[var(--accent)] transition-colors">
-                <ExternalLink className="w-5 h-5" />
-                Demo
+              <Link href={project.live} target="_blank" rel="noopener noreferrer" className="group/link flex items-center gap-2 text-[13px] font-mono text-[var(--text)] hover:text-[var(--accent)] transition-colors">
+                <ExternalLink className="w-4 h-4" />
+                <span>Demo ↗</span>
               </Link>
             )}
           </div>
         </div>
       </div>
-
-      {project.featured && (
-        <div className="lg:w-1/3 flex flex-col justify-center items-center bg-[var(--bg-card)] rounded-lg border border-[var(--border)] p-6 hidden lg:flex">
-           <div className="w-full aspect-video rounded border border-[var(--border)] bg-[var(--bg)] flex items-center justify-center overflow-hidden relative">
-              <Box className="w-16 h-16 text-[var(--text-muted)] opacity-20" />
-           </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -96,10 +91,10 @@ export function Projects() {
   const regular = items.filter(p => !p.featured);
 
   return (
-    <div className="w-full bg-[var(--bg-card)] border-y border-[var(--border)]">
-      <div className="max-w-7xl mx-auto px-6 py-24">
-        <AnimatedSection id="projects">
-          <SectionHeading>Selected Projects</SectionHeading>
+    <div className="w-full bg-[var(--bg-card)]">
+      <div id="projects" className="max-w-6xl mx-auto px-6 py-20 md:py-32">
+        <AnimatedSection>
+          <SectionLabel number="04" label="PROJECTS" />
 
           <div className="flex flex-col gap-12">
             {/* Featured Projects */}

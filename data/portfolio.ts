@@ -10,15 +10,13 @@ export type Portfolio = {
   name: string;
   title: string;
   contact: {
-    email: string;
-    phone: string;
-    location: string;
-    linkedin: string;
-    linkedinUrl: string;
-    github: string;
+    print: boolean;
     heading: string;
     subtext: string;
-    formspreeEndpoint: string;
+    email: string;
+    linkedinUrl: string | null;
+    github: string;
+    twitter: string | null;
   };
   hero: {
     headline: string;
@@ -92,15 +90,13 @@ export const portfolioData: Portfolio = {
   name: "Mayur Subhash Ghadi",
   title: "Senior Software Engineer",
   contact: {
+    print: true,
+    heading: "Let's talk.",
+    subtext: "If you have a project in mind, or just want to chat, feel free to reach out. I'm currently open to new opportunities.",
     email: "ghadim221999@gmail.com",
-    phone: "+91 9869128581",
-    location: "Mumbai, Maharashtra",
-    linkedin: "linkedin.com/in/mayurghadi2299",
     linkedinUrl: "https://www.linkedin.com/in/mayurghadi2299",
     github: "https://github.com/mayurG2299",
-    heading: "Get In Touch",
-    subtext: "I'm currently open for new opportunities. Whether you have a question or just want to say hi, I'll try my best to get back to you!",
-    formspreeEndpoint: "https://formspree.io/f/YOUR_FORM_ID",
+    twitter: null,
   },
   hero: {
     headline: "Mayur Subhash Ghadi",
@@ -179,7 +175,7 @@ export const portfolioData: Portfolio = {
             stack: "Node.js · NestJS · TypeScript · AWS · PostgreSQL · Redis · Expo · Bitbucket Pipelines · SigNoz · Sentry",
             bullets: [
               {
-                print: true,
+                print: false,
                 text: "Led a cross-functional team of 3 (2 engineers + 1 DevOps) for feature development and deployment across IndiaRunning.",
               },
               {
@@ -187,7 +183,7 @@ export const portfolioData: Portfolio = {
                 text: "Built a communication microservice from scratch handling emails, SMS, and push notifications — processing 50k+ notifications/day.",
               },
               {
-                print: true,
+                print: false,
                 text: "Led security hardening: conducted VAPT testing across backend services.",
               },
               {
@@ -203,7 +199,7 @@ export const portfolioData: Portfolio = {
                 text: "Introduced monorepo architecture and built Bitbucket CI/CD pipelines, standardising multi-service deployments for 10+ backend and frontend apps.",
               },
               {
-                print: true,
+                print: false,
                 text: "Supported DevOps tasks: environment setup, pipeline management, and monitoring integration for production workloads.",
               },
             ],
@@ -231,11 +227,11 @@ export const portfolioData: Portfolio = {
                 text: "Contributed to the launch of Spolo, a sports venue booking platform, building organiser-facing dashboard features supporting 1k+ venues.",
               },
               {
-                print: true,
+                print: false,
                 text: "Prototyped AI-powered features for IndiaRunning at an internal hackathon, targeting 10k+ users.",
               },
               {
-                print: true,
+                print: false,
                 text: "Conducting technical interviews for backend engineering roles.",
               },
             ],
@@ -268,11 +264,11 @@ export const portfolioData: Portfolio = {
                 text: "Built complete backend for two new brand websites (Sugar Pop, Quench) — users, payments, ACL, payment gateways, AWS Lambda, and S3, supporting 100k+ monthly visitors.",
               },
               {
-                print: true,
+                print: false,
                 text: "Integrated Gokwik's address pre-fetch API, reducing user drop-off at the checkout address form and improving conversion rates by 15%.",
               },
               {
-                print: true,
+                print: false,
                 text: "Designed WhatsApp order-journey chatbot with Gupshup, converting abandoned carts to completed orders for 5k+ users/month.",
               },
               {
@@ -280,7 +276,7 @@ export const portfolioData: Portfolio = {
                 text: "Reduced product page API latency by implementing Redis caching for recommendations and recently viewed items — achieved 3x reduction in query time and 90%+ cache hit rate.",
               },
               {
-                print: true,
+                print: false,
                 text: "Built WebEngage-powered notification system for back-in-stock alerts, delivering 10k+ notifications/day with high deliverability.",
               },
             ],
@@ -413,6 +409,6 @@ export const portfolioData: Portfolio = {
     ],
   },
   footer: {
-    credit: "Built by Mayur Ghadi",
+    credit: "Built by Mayur Ghadi and his AI Friend.",
   },
 };
