@@ -21,8 +21,31 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_DEFAULT_SITE_URL || "https://mayurghadi.com"),
   title: "Mayur Subhash Ghadi",
   description: "Senior Software Engineer specializing in backend systems, Node.js, NestJS, and AWS. Based in Mumbai.",
+  openGraph: {
+    title: "Mayur Subhash Ghadi | Senior Software Engineer",
+    description: "Senior Software Engineer specializing in backend systems, Node.js, NestJS, and AWS. Based in Mumbai.",
+    url: "/",
+    siteName: "Mayur Ghadi Portfolio",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Mayur Ghadi Portfolio Preview",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Mayur Subhash Ghadi | Senior Software Engineer",
+    description: "Senior Software Engineer specializing in backend systems, Node.js, NestJS, and AWS. Based in Mumbai.",
+    images: ["/og-image.png"],
+  },
 };
 
 const themeScript = `
