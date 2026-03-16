@@ -1,25 +1,108 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { motion, Variants } from "framer-motion";
+import { motion, Variants, AnimatePresence } from "framer-motion";
 import { portfolioData } from "@/data/portfolio";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import Link from "next/link";
+import { Github, Linkedin, Mail, LucideIcon } from "lucide-react";
 
-export let heroNameData: { rect: DOMRect; absoluteTop: number; fontSize: number } | null = null;
+export type WordData = {
+  rect: DOMRect;
+  fontSize: number;
+  letterSpacing: string;
+  color: string;
+  text: string;
+};
+
+export let heroNameData: {
+  absoluteTop: number;
+  word1: WordData;
+  word2: WordData | null;
+} | null = null;
+
+function SocialIcon({ 
+  href, 
+  icon: Icon, 
+  label, 
+  isExternal = true 
+}: { 
+  href: string; 
+  icon: LucideIcon; 
+  label: string; 
+  isExternal?: boolean 
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <div className="relative flex items-center justify-center">
+      <Link
+        href={href}
+        target={isExternal ? "_blank" : undefined}
+        rel={isExternal ? "noopener noreferrer" : undefined}
+        className="p-3 rounded-full text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--border)] transition-all duration-300"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <Icon className="w-6 h-6" />
+      </Link>
+      
+      <AnimatePresence>
+        {isHovered && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 5, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="absolute -top-10 px-3 py-1.5 bg-[var(--text)] text-[var(--bg)] text-xs font-mono rounded whitespace-nowrap pointer-events-none z-50 shadow-xl"
+          >
+            {label}
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[var(--text)] rotate-45" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export function Hero() {
   const prefersReducedMotion = useReducedMotion();
   const nameRef = useRef<HTMLHeadingElement>(null);
+  const word1Ref = useRef<HTMLSpanElement>(null);
+  const word2Ref = useRef<HTMLSpanElement>(null);
   const [progress, setProgress] = useState(0);
+
+  const nameWords = portfolioData.hero.headline.split(" ");
+  const line1 = nameWords[0];
+  const line2 = nameWords.length > 1 ? nameWords[nameWords.length - 1] : "";
 
   useEffect(() => {
     const updateRect = () => {
-      if (nameRef.current) {
+      if (nameRef.current && word1Ref.current) {
         const rect = nameRef.current.getBoundingClientRect();
-        const fontSize = parseFloat(window.getComputedStyle(nameRef.current).fontSize) || 120;
         const absoluteTop = rect.top + window.scrollY;
-        heroNameData = { rect, absoluteTop, fontSize };
+
+        const getCtx = (el: HTMLElement, text: string): WordData => {
+          const r = el.getBoundingClientRect();
+          const s = window.getComputedStyle(el);
+          return {
+             rect: {
+               ...r.toJSON(),
+               top: r.top + window.scrollY,
+               y: r.y + window.scrollY,
+               bottom: r.bottom + window.scrollY
+             },
+             fontSize: parseFloat(s.fontSize) || 120,
+             letterSpacing: s.letterSpacing,
+             color: s.color,
+             text,
+          };
+        };
+
+        const w1 = getCtx(word1Ref.current, line1);
+        const w2 = word2Ref.current ? getCtx(word2Ref.current, line2) : null;
+
+        heroNameData = { absoluteTop, word1: w1, word2: w2 };
       }
     };
     
@@ -30,7 +113,7 @@ export function Hero() {
       clearTimeout(t);
       window.removeEventListener("resize", updateRect);
     };
-  }, []);
+  }, [line1, line2]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -53,10 +136,6 @@ export function Hero() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.2, 0.65, 0.3, 0.9] } },
   };
 
-  const nameWords = portfolioData.hero.headline.split(" ");
-  const line1 = nameWords[0];
-  const line2 = nameWords.length > 2 ? nameWords[2] : nameWords[1];
-
   return (
     <section id="hero" className="relative min-h-screen flex flex-col justify-between px-6 max-w-7xl mx-auto w-full pt-20 pb-12 overflow-hidden">
       {/* Top spacer */}
@@ -78,11 +157,12 @@ export function Hero() {
           variants={prefersReducedMotion ? {} : containerVariants}
           initial="hidden"
           animate="visible"
-          style={{ opacity: progress > 0.95 ? 0 : 1 }}
+          style={{ opacity: progress > 0 ? 0 : 1 }}
         >
           {/* Line 1 - Flush Left */}
           <div className="flex justify-start">
             <motion.span 
+              ref={word1Ref}
               variants={prefersReducedMotion ? {} : wordVariants} 
               className="block"
               style={{ fontSize: "clamp(3.5rem, 9vw, 10rem)" }}
@@ -94,6 +174,7 @@ export function Hero() {
           {line2 && (
             <div className="flex justify-end pr-0 md:pr-12 md:mt-0">
               <motion.span 
+                ref={word2Ref}
                 variants={prefersReducedMotion ? {} : wordVariants} 
                 className="block text-right"
                 style={{ fontSize: "clamp(3.5rem, 9vw, 10rem)" }}
@@ -123,7 +204,7 @@ export function Hero() {
         animate={{ opacity: 1 }}
         transition={{ delay: 1.0, duration: 0.8 }}
       >
-        <div className="flex flex-row gap-8">
+        <div className="flex flex-row flex-wrap items-center gap-x-12 gap-y-6">
           <Link
             href={portfolioData.hero.cta[0].href}
             className="group inline-flex items-center text-[var(--text)] font-body font-medium text-lg hover:text-[var(--accent)] transition-colors relative pb-1"
@@ -134,17 +215,24 @@ export function Hero() {
             <span className="absolute bottom-0 left-0 w-full h-[1px] bg-transparent group-hover:bg-[var(--accent)] transition-colors duration-300"></span>
           </Link>
 
-          <Link
-            href={portfolioData.contact.github}
-            className="group inline-flex items-center text-[var(--text)] font-body font-medium text-lg hover:text-[var(--accent)] transition-colors relative pb-1"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span className="relative z-10">
-              GitHub ↗
-            </span>
-            <span className="absolute bottom-0 left-0 w-full h-[1px] bg-transparent group-hover:bg-[var(--accent)] transition-colors duration-300"></span>
-          </Link>
+          <div className="flex flex-row items-center gap-2">
+            <SocialIcon 
+              href={portfolioData.contact.linkedinUrl || "#"} 
+              icon={Linkedin} 
+              label="LinkedIn" 
+            />
+            <SocialIcon 
+              href={portfolioData.contact.github} 
+              icon={Github} 
+              label="GitHub" 
+            />
+            <SocialIcon 
+              href={`mailto:${portfolioData.contact.email}`} 
+              icon={Mail} 
+              label="Email" 
+              isExternal={false} 
+            />
+          </div>
         </div>
 
         {/* Scroll indicator */}

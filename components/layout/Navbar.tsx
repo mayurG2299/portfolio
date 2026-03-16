@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,7 +11,6 @@ const NAV_ITEMS = [
   { name: "About", href: "#about" },
   { name: "Projects", href: "#projects" },
   { name: "Experience", href: "#experience" },
-  { name: "Contact", href: "#contact" },
 ];
 
 export function Navbar() {
@@ -20,8 +19,11 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [cloneStyle, setCloneStyle] = useState<React.CSSProperties | undefined>(undefined);
+  const [clone1Style, setClone1Style] = useState<React.CSSProperties | undefined>(undefined);
+  const [clone2Style, setClone2Style] = useState<React.CSSProperties | undefined>(undefined);
   const prefersReducedMotion = useReducedMotion();
+  const navWord1Ref = useRef<HTMLSpanElement>(null);
+  const navWord2Ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     // Check initial theme
@@ -29,39 +31,70 @@ export function Navbar() {
     setIsDark(theme === "dark");
 
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      const currentScrollY = window.scrollY;
+      setIsScrolled(currentScrollY > 20);
 
       // Handle floating clone interpolation
-      if (heroNameData && heroNameData.absoluteTop > 0) {
-        const p = Math.max(0, Math.min(1, window.scrollY / heroNameData.absoluteTop));
+      if (heroNameData && heroNameData.word1 && navWord1Ref.current) {
+        const hW1 = heroNameData.word1;
+        const hW2 = heroNameData.word2;
+        const nW1 = navWord1Ref.current.getBoundingClientRect();
+        const nW1Style = window.getComputedStyle(navWord1Ref.current);
+        const targetTop = nW1.top;
+        const targetLeft1 = nW1.left;
+        const targetSize = parseFloat(nW1Style.fontSize) || 15;
+        
+        const maxScroll = Math.max(1, heroNameData.absoluteTop - targetTop);
+        const p = Math.max(0, Math.min(1, currentScrollY / maxScroll));
         setProgress(p);
 
         if (p > 0 && p < 1) {
           const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-          const fromSize = heroNameData.fontSize;
-          const toSize = 15;
-          const fromTop = heroNameData.absoluteTop;
-          const toTop = 27; // Center slightly within 80px navbar height
-          const fromLeft = heroNameData.rect.left;
-          const toLeft = 24; // px-6 is 24px
-
-          setCloneStyle({
+          
+          const w1NaturalTop = hW1.rect.top - currentScrollY;
+          setClone1Style({
             position: 'fixed',
-            top: lerp(fromTop - window.scrollY, toTop, p), 
-            left: lerp(fromLeft, toLeft, p),
-            fontSize: lerp(fromSize * 0.8, toSize, p),
-            opacity: p > 0.1 ? 1 : 0,
+            top: lerp(w1NaturalTop, targetTop, p),
+            left: lerp(hW1.rect.left, targetLeft1, p),
+            fontSize: lerp(hW1.fontSize, targetSize, p),
+            opacity: 1,
             fontFamily: 'var(--font-heading)',
-            fontWeight: 800,
+            fontWeight: Math.round(lerp(800, 700, p)),
+            textTransform: 'uppercase',
             color: 'var(--text)',
             pointerEvents: 'none',
             zIndex: 60,
             whiteSpace: 'nowrap',
-            transition: 'none',
           });
+
+          if (hW2 && navWord2Ref.current) {
+            const nW2 = navWord2Ref.current.getBoundingClientRect();
+            const w2NaturalTop = hW2.rect.top - currentScrollY;
+            setClone2Style({
+              position: 'fixed',
+              top: lerp(w2NaturalTop, targetTop, p),
+              left: lerp(hW2.rect.left, nW2.left, p),
+              fontSize: lerp(hW2.fontSize, targetSize, p),
+              opacity: 1,
+              fontFamily: 'var(--font-heading)',
+              fontWeight: Math.round(lerp(800, 700, p)),
+              textTransform: 'uppercase',
+              color: 'var(--text)',
+              pointerEvents: 'none',
+              zIndex: 60,
+              whiteSpace: 'nowrap',
+            });
+          } else {
+            setClone2Style(undefined);
+          }
+        } else {
+          setClone1Style(undefined);
+          setClone2Style(undefined);
         }
       } else {
         setProgress(0);
+        setClone1Style(undefined);
+        setClone2Style(undefined);
       }
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -108,22 +141,35 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <div className="min-w-[200px] flex items-center">
           <AnimatePresence>
-            {isScrolled && progress === 1 && (
-              <motion.div
-                initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -8 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                className="flex flex-col"
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0 }}
+              className="flex flex-col"
+            >
+              <span 
+                className="font-heading font-bold text-[15px] text-[var(--text)] flex gap-1 uppercase transition-opacity duration-300"
+                style={{ opacity: isScrolled && progress === 1 ? 1 : 0 }}
               >
-                <span className="font-heading font-bold text-[15px] text-[var(--text)]">
-                  {portfolioData.name}
-                </span>
-                <span className="font-mono text-[11px] text-[var(--text-muted)] mt-[2px]">
-                  {portfolioData.title} &middot; 6+ yrs
-                </span>
-              </motion.div>
-            )}
+                {(() => {
+                  const nameWords = portfolioData.hero.headline.split(" ");
+                  const line1 = nameWords[0];
+                  const line2 = nameWords.length > 1 ? nameWords[nameWords.length - 1] : "";
+                  return (
+                    <>
+                      <span ref={navWord1Ref}>{line1}</span>
+                      {line2 && <span ref={navWord2Ref}>{line2}</span>}
+                    </>
+                  );
+                })()}
+              </span>
+              <span 
+                className="font-mono text-[11px] text-[var(--text-muted)] mt-[2px] transition-opacity duration-300"
+                style={{ opacity: isScrolled && progress === 1 ? 1 : 0 }}
+              >
+                {portfolioData.title} &middot; 6+ yrs
+              </span>
+            </motion.div>
           </AnimatePresence>
         </div>
         
@@ -201,9 +247,14 @@ export function Navbar() {
       )}
 
       {/* Floating identity clone */}
-      {progress > 0 && progress < 1 && cloneStyle && (
-        <div style={cloneStyle} className="leading-none uppercase tracking-tight">
-          {portfolioData.name}
+      {progress > 0 && progress < 1 && clone1Style && heroNameData && (
+        <div style={clone1Style} className="leading-none tracking-tight">
+          {heroNameData.word1.text}
+        </div>
+      )}
+      {progress > 0 && progress < 1 && clone2Style && heroNameData?.word2 && (
+        <div style={clone2Style} className="leading-none tracking-tight text-right">
+          {heroNameData.word2.text}
         </div>
       )}
     </nav>
